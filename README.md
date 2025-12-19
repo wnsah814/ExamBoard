@@ -25,7 +25,7 @@
 ### 1. 프로젝트 클론
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ExamBoard.git
+git clone https://github.com/wnsah814/ExamBoard.git
 cd ExamBoard
 npm install
 ```
