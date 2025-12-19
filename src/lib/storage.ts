@@ -1,7 +1,7 @@
 import type { ExamInfo, Announcement } from "@/types/exam";
 
-const EXAM_KEY = "exam-timer-exam";
-const ANNOUNCEMENTS_KEY = "exam-timer-announcements";
+const EXAM_KEY = "examboard-exam";
+const ANNOUNCEMENTS_KEY = "examboard-announcements";
 
 export interface ExamData {
   name: string;
