@@ -27,13 +27,23 @@ import {
   loadPresetsFromFirestore,
   type Preset,
 } from "@/lib/firestore";
+import { subscribeToAuth, signOut } from "@/lib/auth";
+import { AdminAuth } from "@/components/AdminAuth";
+import { AdminSettings } from "@/components/AdminSettings";
 import type { Announcement } from "@/types/exam";
-import { Trash2, Plus, Eye, Clock, Bell, Save, FolderOpen, Loader2 } from "lucide-react";
+import type { User } from "firebase/auth";
+import { Trash2, Plus, Eye, Clock, Bell, Save, FolderOpen, Loader2, Settings, LogOut } from "lucide-react";
 
 export default function AdminPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Auth state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authType, setAuthType] = useState<"admin" | "password" | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Exam form state
   const [exam, setExam] = useState({
@@ -66,8 +76,44 @@ export default function AdminPage() {
     )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   }
 
-  // Load saved data on mount
+  // Handle authentication
+  function handleAuthenticated(type: "admin" | "password", user?: User) {
+    setAuthType(type);
+    setIsAuthenticated(true);
+    if (user) setCurrentUser(user);
+  }
+
+  async function handleLogout() {
+    try {
+      await signOut();
+      setIsAuthenticated(false);
+      setAuthType(null);
+      setCurrentUser(null);
+      setShowSettings(false);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  }
+
+  // Subscribe to auth state
   useEffect(() => {
+    const unsubscribe = subscribeToAuth((user) => {
+      // Only auto-restore if logged in with Google
+      // Password auth is session-only
+      if (user && authType === "admin") {
+        setCurrentUser(user);
+      }
+    });
+    return () => unsubscribe();
+  }, [authType]);
+
+  // Load saved data when authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setIsLoading(false);
+      return;
+    }
+
     async function loadData() {
       try {
         const [savedExam, savedAnnouncements, savedPresets] = await Promise.all([
@@ -115,8 +161,9 @@ export default function AdminPage() {
       }
     }
 
+    setIsLoading(true);
     loadData();
-  }, []);
+  }, [isAuthenticated]);
 
   function handleExamChange(field: string, value: string) {
     setExam((prev) => ({ ...prev, [field]: value }));
@@ -340,10 +387,31 @@ export default function AdminPage() {
     return `${m}분`;
   }
 
+  // Show auth screen if not authenticated
+  if (!isAuthenticated) {
+    return <AdminAuth onAuthenticated={handleAuthenticated} />;
+  }
+
+  // Show loading while data is being fetched
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // Show settings panel for admin users
+  if (showSettings && currentUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 py-8 px-4">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-2xl font-bold mb-6">관리자 설정</h1>
+          <AdminSettings
+            currentUser={currentUser}
+            onClose={() => setShowSettings(false)}
+          />
+        </div>
       </div>
     );
   }
@@ -353,11 +421,33 @@ export default function AdminPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">시험 관리</h1>
-          <Button onClick={() => router.push("/")} variant="outline">
-            <Eye className="w-4 h-4 mr-2" />
-            화면 보기
-          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">시험 관리</h1>
+            {currentUser && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {currentUser.displayName || currentUser.email}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Settings button - only for admin (Google login) users */}
+            {authType === "admin" && currentUser && (
+              <Button
+                onClick={() => setShowSettings(true)}
+                variant="outline"
+                size="icon"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+            )}
+            <Button onClick={() => router.push("/")} variant="outline">
+              <Eye className="w-4 h-4 mr-2" />
+              화면 보기
+            </Button>
+            <Button onClick={handleLogout} variant="outline" size="icon">
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Presets Card */}
