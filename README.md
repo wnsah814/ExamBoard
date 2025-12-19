@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ExamBoard
 
-## Getting Started
+대학 시험용 타이머 및 공지사항 표시 시스템
 
-First, run the development server:
+## Features
+
+- 실시간 시계 및 타이머 (대형 화면 최적화)
+- 시험 정보 표시 (시험 시간, 중도퇴실 가능 시간)
+- 공지사항 (안내, 주의, 문제 정정)
+- 프리셋 저장/불러오기
+- Firebase Firestore 실시간 동기화
+- 관리자 인증 (Google 로그인 / 비밀번호)
+
+## Tech Stack
+
+- Next.js 16
+- Tailwind CSS v4
+- shadcn/ui
+- Firebase (Firestore, Authentication)
+
+## Setup
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Firebase Console 설정
+
+1. [Firebase Console](https://console.firebase.google.com)에서 프로젝트 생성
+2. Firestore Database 생성
+3. Authentication > Sign-in method > Google 활성화
+
+### 3. Run development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Pages
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `/` - 메인 화면 (시계, 타이머, 공지사항)
+- `/admin` - 관리자 페이지 (시험 설정, 공지사항 관리)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Firestore Structure
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+exams/current          - 현재 시험 정보
+announcements/{id}     - 공지사항
+presets/{id}           - 프리셋
+admins/{email}         - 관리자 목록
+app/settings           - 앱 설정 (관리자 비밀번호)
+```
