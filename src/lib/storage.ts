@@ -2,6 +2,7 @@ import type { ExamInfo, Announcement } from "@/types/exam";
 
 const EXAM_KEY = "examboard-exam";
 const ANNOUNCEMENTS_KEY = "examboard-announcements";
+const PRESETS_KEY = "examboard-presets";
 
 export interface ExamData {
   name: string;
@@ -76,4 +77,31 @@ export function toAnnouncements(data: AnnouncementData[]): Announcement[] {
 // Generate unique ID
 export function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+// Presets
+export interface PresetData {
+  id: string;
+  name: string;
+  examName: string;
+  subject: string;
+  durationMinutes: number; // 시험 시간 (분)
+  earlyExitMinutes: number | null; // 시작 후 몇 분 뒤 중도퇴실 가능
+}
+
+export function savePresets(presets: PresetData[]): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
+  }
+}
+
+export function loadPresets(): PresetData[] {
+  if (typeof window === "undefined") return [];
+  const data = localStorage.getItem(PRESETS_KEY);
+  if (!data) return [];
+  try {
+    return JSON.parse(data);
+  } catch {
+    return [];
+  }
 }

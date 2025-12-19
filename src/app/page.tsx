@@ -5,12 +5,8 @@ import { Clock } from "@/components/Clock";
 import { ExamInfoCard } from "@/components/ExamInfoCard";
 import { AnnouncementCard } from "@/components/AnnouncementCard";
 import type { ExamInfo, Announcement } from "@/types/exam";
-import {
-  loadExam,
-  loadAnnouncements,
-  toExamInfo,
-  toAnnouncements,
-} from "@/lib/storage";
+import { subscribeToExam, subscribeToAnnouncements } from "@/lib/firestore";
+import { Loader2 } from "lucide-react";
 
 export default function Home() {
   const [exam, setExam] = useState<ExamInfo | null>(null);
@@ -18,28 +14,27 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    function loadData() {
-      const examData = loadExam();
-      const announcementData = loadAnnouncements();
-
-      if (examData) {
-        setExam(toExamInfo(examData));
-      }
-      setAnnouncements(toAnnouncements(announcementData));
+    // Subscribe to real-time updates
+    const unsubExam = subscribeToExam((examData) => {
+      setExam(examData);
       setIsLoading(false);
-    }
+    });
 
-    loadData();
+    const unsubAnnouncements = subscribeToAnnouncements((announcementsData) => {
+      setAnnouncements(announcementsData);
+    });
 
-    // Poll for updates every 2 seconds
-    const interval = setInterval(loadData, 2000);
-    return () => clearInterval(interval);
+    // Cleanup subscriptions on unmount
+    return () => {
+      unsubExam();
+      unsubAnnouncements();
+    };
   }, []);
 
   if (isLoading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-        <div className="text-2xl text-muted-foreground">불러오는 중...</div>
+        <Loader2 className="w-12 h-12 animate-spin text-muted-foreground" />
       </div>
     );
   }
