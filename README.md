@@ -124,9 +124,10 @@ service cloud.firestore {
 
     match /admins/{email} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null &&
-                       request.auth.token.email != null &&
-                       request.auth.token.email == email;
+      allow create: if request.auth != null && (
+        (request.auth.token.email != null && request.auth.token.email == email) ||
+        isAdmin()
+      );
       allow update, delete: if isAdmin();
     }
 
