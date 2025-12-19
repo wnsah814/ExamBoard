@@ -1,5 +1,6 @@
 import {
   signInWithPopup,
+  signInAnonymously as firebaseSignInAnonymously,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   type User,
@@ -26,6 +27,11 @@ export function subscribeToAuth(callback: (user: User | null) => void): () => vo
 
 export async function signInWithGoogle(): Promise<User> {
   const result = await signInWithPopup(auth, googleProvider);
+  return result.user;
+}
+
+export async function signInAnonymously(): Promise<User> {
+  const result = await firebaseSignInAnonymously(auth);
   return result.user;
 }
 

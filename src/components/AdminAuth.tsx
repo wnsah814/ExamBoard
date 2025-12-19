@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   signInWithGoogle,
+  signInAnonymously,
   verifyAdminPassword,
   isAdmin,
   isFirstTimeSetup,
@@ -68,6 +69,8 @@ export function AdminAuth({ onAuthenticated }: AdminAuthProps) {
         setError("비밀번호가 올바르지 않습니다.");
         return;
       }
+      // 비밀번호 확인 후 익명 로그인으로 Firebase Auth 세션 생성
+      await signInAnonymously();
       onAuthenticated("password");
     } catch (err) {
       console.error("Password error:", err);
