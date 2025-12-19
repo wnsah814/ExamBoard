@@ -26,13 +26,22 @@
 npm install
 ```
 
-### 2. Firebase Console 설정
+### 2. Firebase 설정
 
 1. [Firebase Console](https://console.firebase.google.com)에서 프로젝트 생성
 2. Firestore Database 생성
 3. Authentication > Sign-in method > Google 활성화
+4. 프로젝트 설정 > 일반 > 내 앱에서 Firebase 구성 값 복사
 
-### 3. Run development server
+### 3. 환경변수 설정
+
+`.env.example`을 `.env.local`로 복사하고 Firebase 값 입력:
+
+```bash
+cp .env.example .env.local
+```
+
+### 4. Run development server
 
 ```bash
 npm run dev
