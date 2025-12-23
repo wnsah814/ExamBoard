@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-export function Clock() {
+interface ClockProps {
+  size?: number; // size in vw units (default: 16)
+}
+
+export function Clock({ size = 16 }: ClockProps) {
   const [time, setTime] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -16,7 +20,10 @@ export function Clock() {
   if (!time) {
     return (
       <div className="text-center">
-        <div className="text-[16vw] font-bold tabular-nums tracking-tight text-foreground leading-none">
+        <div
+          className="font-bold tabular-nums tracking-tight text-foreground leading-none"
+          style={{ fontSize: `${size}vw` }}
+        >
           --:--:--
         </div>
       </div>
@@ -29,7 +36,10 @@ export function Clock() {
 
   return (
     <div className="text-center">
-      <div className="text-[16vw] font-bold tabular-nums tracking-tight text-foreground leading-none">
+      <div
+        className="font-bold tabular-nums tracking-tight text-foreground leading-none"
+        style={{ fontSize: `${size}vw` }}
+      >
         {hours}
         <span className="opacity-80">:</span>
         {minutes}

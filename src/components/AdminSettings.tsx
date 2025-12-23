@@ -15,7 +15,8 @@ import {
   setAdminPassword,
   type Admin,
 } from "@/lib/auth";
-import { Trash2, Plus, Loader2, Users, Key, Save } from "lucide-react";
+import { getAppSettings, updateClockSize } from "@/lib/firestore";
+import { Trash2, Plus, Loader2, Users, Key, Save, Clock } from "lucide-react";
 import type { User } from "firebase/auth";
 
 interface AdminSettingsProps {
@@ -30,6 +31,7 @@ export function AdminSettings({ currentUser, onClose }: AdminSettingsProps) {
   const [newAdminName, setNewAdminName] = useState("");
   const [password, setPassword] = useState("");
   const [currentPassword, setCurrentPassword] = useState<string | null>(null);
+  const [clockSize, setClockSize] = useState(16);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -38,13 +40,15 @@ export function AdminSettings({ currentUser, onClose }: AdminSettingsProps) {
 
   async function loadData() {
     try {
-      const [adminList, pwd] = await Promise.all([
+      const [adminList, pwd, settings] = await Promise.all([
         getAdmins(),
         getAdminPassword(),
+        getAppSettings(),
       ]);
       setAdmins(adminList);
       setCurrentPassword(pwd);
       if (pwd) setPassword(pwd);
+      setClockSize(settings.clockSize);
     } catch (error) {
       console.error("Error loading settings:", error);
     } finally {
@@ -102,6 +106,17 @@ export function AdminSettings({ currentUser, onClose }: AdminSettingsProps) {
       alert("비밀번호 저장 중 오류가 발생했습니다.");
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleClockSizeChange(value: string) {
+    const size = parseInt(value);
+    setClockSize(size);
+    try {
+      await updateClockSize(size);
+    } catch (error) {
+      console.error("Error updating clock size:", error);
+      alert("시계 크기 저장 중 오류가 발생했습니다.");
     }
   }
 
@@ -230,6 +245,46 @@ export function AdminSettings({ currentUser, onClose }: AdminSettingsProps) {
               비밀번호가 설정되지 않았습니다. 비밀번호로 접속하려면 먼저 설정하세요.
             </p>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Clock Size Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="w-5 h-5" />
+            시계 크기 기본값
+          </CardTitle>
+          <CardDescription>
+            모든 디스플레이의 시계 크기 기본값을 설정합니다. 각 강의실에서는 화면 우하단 설정 버튼으로 로컬 크기를 조절할 수 있습니다.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label>기본 크기: {clockSize}vw</Label>
+              <span className="text-sm text-muted-foreground">
+                {clockSize < 12 ? "작게" : clockSize < 18 ? "보통" : "크게"}
+              </span>
+            </div>
+            <input
+              type="range"
+              min="8"
+              max="24"
+              step="1"
+              value={clockSize}
+              onChange={(e) => handleClockSizeChange(e.target.value)}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>8vw (작게)</span>
+              <span>16vw (권장)</span>
+              <span>24vw (크게)</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              💡 팁: 각 강의실에서 로컬 설정을 하지 않은 경우 이 기본값이 적용됩니다.
+            </p>
+          </div>
         </CardContent>
       </Card>
 

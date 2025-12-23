@@ -185,6 +185,51 @@ export function subscribeToAnnouncements(
   });
 }
 
+// ============ APP SETTINGS ============
+
+const SETTINGS_COLLECTION = "app";
+const SETTINGS_DOC = "settings";
+
+export interface AppSettings {
+  clockSize: number; // 8-24 (vw units)
+}
+
+export async function getAppSettings(): Promise<AppSettings> {
+  const docRef = doc(db, SETTINGS_COLLECTION, SETTINGS_DOC);
+  const docSnap = await getDoc(docRef);
+
+  if (!docSnap.exists()) {
+    return { clockSize: 16 }; // default
+  }
+
+  const data = docSnap.data();
+  return {
+    clockSize: data.clockSize ?? 16,
+  };
+}
+
+export async function updateClockSize(size: number): Promise<void> {
+  const docRef = doc(db, SETTINGS_COLLECTION, SETTINGS_DOC);
+  await setDoc(docRef, { clockSize: size }, { merge: true });
+}
+
+export function subscribeToAppSettings(
+  callback: (settings: AppSettings) => void
+): () => void {
+  const docRef = doc(db, SETTINGS_COLLECTION, SETTINGS_DOC);
+
+  return onSnapshot(docRef, (docSnap) => {
+    if (!docSnap.exists()) {
+      callback({ clockSize: 16 });
+      return;
+    }
+    const data = docSnap.data();
+    callback({
+      clockSize: data.clockSize ?? 16,
+    });
+  });
+}
+
 // ============ PRESETS ============
 
 export interface Preset {

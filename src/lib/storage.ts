@@ -3,6 +3,7 @@ import type { ExamInfo, Announcement } from "@/types/exam";
 const EXAM_KEY = "examboard-exam";
 const ANNOUNCEMENTS_KEY = "examboard-announcements";
 const PRESETS_KEY = "examboard-presets";
+const CLOCK_SIZE_KEY = "examboard-clock-size";
 
 export interface ExamData {
   name: string;
@@ -103,5 +104,26 @@ export function loadPresets(): PresetData[] {
     return JSON.parse(data);
   } catch {
     return [];
+  }
+}
+
+// Clock size (local per display)
+export function saveLocalClockSize(size: number): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(CLOCK_SIZE_KEY, size.toString());
+  }
+}
+
+export function loadLocalClockSize(): number | null {
+  if (typeof window === "undefined") return null;
+  const data = localStorage.getItem(CLOCK_SIZE_KEY);
+  if (!data) return null;
+  const size = parseInt(data);
+  return isNaN(size) ? null : size;
+}
+
+export function clearLocalClockSize(): void {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(CLOCK_SIZE_KEY);
   }
 }
