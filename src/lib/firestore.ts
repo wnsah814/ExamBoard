@@ -192,6 +192,7 @@ const SETTINGS_DOC = "settings";
 
 export interface AppSettings {
   clockSize: number; // 8-24 (vw units)
+  fontScale: number; // 0.5-2.0 (scale multiplier)
 }
 
 export async function getAppSettings(): Promise<AppSettings> {
@@ -199,18 +200,24 @@ export async function getAppSettings(): Promise<AppSettings> {
   const docSnap = await getDoc(docRef);
 
   if (!docSnap.exists()) {
-    return { clockSize: 16 }; // default
+    return { clockSize: 16, fontScale: 1.0 }; // defaults
   }
 
   const data = docSnap.data();
   return {
     clockSize: data.clockSize ?? 16,
+    fontScale: data.fontScale ?? 1.0,
   };
 }
 
 export async function updateClockSize(size: number): Promise<void> {
   const docRef = doc(db, SETTINGS_COLLECTION, SETTINGS_DOC);
   await setDoc(docRef, { clockSize: size }, { merge: true });
+}
+
+export async function updateFontScale(scale: number): Promise<void> {
+  const docRef = doc(db, SETTINGS_COLLECTION, SETTINGS_DOC);
+  await setDoc(docRef, { fontScale: scale }, { merge: true });
 }
 
 export function subscribeToAppSettings(
@@ -220,12 +227,13 @@ export function subscribeToAppSettings(
 
   return onSnapshot(docRef, (docSnap) => {
     if (!docSnap.exists()) {
-      callback({ clockSize: 16 });
+      callback({ clockSize: 16, fontScale: 1.0 });
       return;
     }
     const data = docSnap.data();
     callback({
       clockSize: data.clockSize ?? 16,
+      fontScale: data.fontScale ?? 1.0,
     });
   });
 }

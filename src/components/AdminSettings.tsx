@@ -15,8 +15,8 @@ import {
   setAdminPassword,
   type Admin,
 } from "@/lib/auth";
-import { getAppSettings, updateClockSize } from "@/lib/firestore";
-import { Trash2, Plus, Loader2, Users, Key, Save, Clock } from "lucide-react";
+import { getAppSettings, updateClockSize, updateFontScale } from "@/lib/firestore";
+import { Trash2, Plus, Loader2, Users, Key, Save, Clock, Type, Settings } from "lucide-react";
 import type { User } from "firebase/auth";
 
 interface AdminSettingsProps {
@@ -32,6 +32,7 @@ export function AdminSettings({ currentUser, onClose }: AdminSettingsProps) {
   const [password, setPassword] = useState("");
   const [currentPassword, setCurrentPassword] = useState<string | null>(null);
   const [clockSize, setClockSize] = useState(16);
+  const [fontScale, setFontScale] = useState(1.0);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -49,6 +50,7 @@ export function AdminSettings({ currentUser, onClose }: AdminSettingsProps) {
       setCurrentPassword(pwd);
       if (pwd) setPassword(pwd);
       setClockSize(settings.clockSize);
+      setFontScale(settings.fontScale);
     } catch (error) {
       console.error("Error loading settings:", error);
     } finally {
@@ -117,6 +119,17 @@ export function AdminSettings({ currentUser, onClose }: AdminSettingsProps) {
     } catch (error) {
       console.error("Error updating clock size:", error);
       alert("시계 크기 저장 중 오류가 발생했습니다.");
+    }
+  }
+
+  async function handleFontScaleChange(value: string) {
+    const scale = parseFloat(value);
+    setFontScale(scale);
+    try {
+      await updateFontScale(scale);
+    } catch (error) {
+      console.error("Error updating font scale:", error);
+      alert("글자 크기 저장 중 오류가 발생했습니다.");
     }
   }
 
@@ -248,24 +261,23 @@ export function AdminSettings({ currentUser, onClose }: AdminSettingsProps) {
         </CardContent>
       </Card>
 
-      {/* Clock Size Card */}
+      {/* Display Settings Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Clock className="w-5 h-5" />
-            시계 크기 기본값
+            <Settings className="w-5 h-5" />
+            화면 크기 기본값
           </CardTitle>
           <CardDescription>
-            모든 디스플레이의 시계 크기 기본값을 설정합니다. 각 강의실에서는 화면 우하단 설정 버튼으로 로컬 크기를 조절할 수 있습니다.
+            모든 디스플레이의 기본 크기를 설정합니다. 각 강의실에서는 화면 우하단 설정 버튼으로 로컬 크기를 조절할 수 있습니다.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
+          {/* Clock Size */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>기본 크기: {clockSize}vw</Label>
-              <span className="text-sm text-muted-foreground">
-                {clockSize < 12 ? "작게" : clockSize < 18 ? "보통" : "크게"}
-              </span>
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              <Label>시계 크기: {clockSize}vw</Label>
             </div>
             <input
               type="range"
@@ -281,10 +293,35 @@ export function AdminSettings({ currentUser, onClose }: AdminSettingsProps) {
               <span>16vw (권장)</span>
               <span>24vw (크게)</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              💡 팁: 각 강의실에서 로컬 설정을 하지 않은 경우 이 기본값이 적용됩니다.
-            </p>
           </div>
+
+          <Separator />
+
+          {/* Font Scale */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Type className="w-4 h-4" />
+              <Label>글자 크기: {fontScale.toFixed(1)}x</Label>
+            </div>
+            <input
+              type="range"
+              min="0.5"
+              max="2.0"
+              step="0.1"
+              value={fontScale}
+              onChange={(e) => handleFontScaleChange(e.target.value)}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>0.5x (작게)</span>
+              <span>1.0x (권장)</span>
+              <span>2.0x (크게)</span>
+            </div>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            💡 팁: 각 강의실에서 로컬 설정을 하지 않은 경우 이 기본값이 적용됩니다.
+          </p>
         </CardContent>
       </Card>
 

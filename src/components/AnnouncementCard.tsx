@@ -8,17 +8,20 @@ import { Bell, AlertTriangle, PenLine } from "lucide-react";
 
 interface AnnouncementCardProps {
   announcements: Announcement[];
+  fontScale?: number;
 }
 
-function getAnnouncementIcon(type: Announcement["type"]) {
-  const iconClass = "h-[1.8vw] w-[1.8vw] flex-shrink-0";
+function getAnnouncementIcon(type: Announcement["type"], fontScale: number) {
+  const iconSize = `${1.8 * fontScale}vw`;
+  const iconStyle = { width: iconSize, height: iconSize };
+  const className = "flex-shrink-0";
   switch (type) {
     case "correction":
-      return <PenLine className={`${iconClass} text-orange-500`} />;
+      return <PenLine className={`${className} text-orange-500`} style={iconStyle} />;
     case "warning":
-      return <AlertTriangle className={`${iconClass} text-red-500`} />;
+      return <AlertTriangle className={`${className} text-red-500`} style={iconStyle} />;
     default:
-      return <Bell className={`${iconClass} text-blue-500`} />;
+      return <Bell className={`${className} text-blue-500`} style={iconStyle} />;
   }
 }
 
@@ -41,17 +44,23 @@ function formatTimestamp(date: Date): string {
   });
 }
 
-export function AnnouncementCard({ announcements }: AnnouncementCardProps) {
+export function AnnouncementCard({ announcements, fontScale = 1.0 }: AnnouncementCardProps) {
+  const iconSize = `${2 * fontScale}vw`;
+
   return (
     <Card className="h-full flex flex-col bg-card/50 backdrop-blur overflow-hidden">
       <CardHeader className="pb-[1vh] pt-[1.5vh] px-[1.5vw]">
         <CardTitle className="flex items-center justify-between">
-          <span className="flex items-center gap-[0.5vw] text-[1.8vw]">
-            <Bell className="h-[2vw] w-[2vw]" />
+          <span className="flex items-center gap-[0.5vw]" style={{ fontSize: `${1.8 * fontScale}vw` }}>
+            <Bell style={{ width: iconSize, height: iconSize }} />
             공지사항
           </span>
           {announcements.length > 0 && (
-            <Badge variant="destructive" className="text-[1.3vw] px-[1vw] py-[0.3vh]">
+            <Badge
+              variant="destructive"
+              className="px-[1vw] py-[0.3vh]"
+              style={{ fontSize: `${1.3 * fontScale}vw` }}
+            >
               {announcements.length}
             </Badge>
           )}
@@ -59,7 +68,10 @@ export function AnnouncementCard({ announcements }: AnnouncementCardProps) {
       </CardHeader>
       <CardContent className="flex-1 overflow-hidden px-[1.5vw] pb-[1.5vh]">
         {announcements.length === 0 ? (
-          <div className="flex h-full items-center justify-center text-[1.8vw] text-muted-foreground">
+          <div
+            className="flex h-full items-center justify-center text-muted-foreground"
+            style={{ fontSize: `${1.8 * fontScale}vw` }}
+          >
             공지사항이 없습니다
           </div>
         ) : (
@@ -73,25 +85,35 @@ export function AnnouncementCard({ announcements }: AnnouncementCardProps) {
                   )}`}
                 >
                   <div className="flex items-start gap-[1vw]">
-                    {getAnnouncementIcon(announcement.type)}
+                    {getAnnouncementIcon(announcement.type, fontScale)}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-[1vw]">
-                        <span className="font-semibold text-[1.6vw] flex items-center gap-[0.5vw]">
+                        <span
+                          className="font-semibold flex items-center gap-[0.5vw]"
+                          style={{ fontSize: `${1.6 * fontScale}vw` }}
+                        >
                           {announcement.title}
                           {announcement.questionNumber && (
                             <Badge
                               variant="outline"
-                              className="text-[1.2vw] px-[0.6vw] bg-background"
+                              className="px-[0.6vw] bg-background"
+                              style={{ fontSize: `${1.2 * fontScale}vw` }}
                             >
                               {announcement.questionNumber}번
                             </Badge>
                           )}
                         </span>
-                        <span className="text-[1.2vw] text-muted-foreground tabular-nums flex-shrink-0">
+                        <span
+                          className="text-muted-foreground tabular-nums flex-shrink-0"
+                          style={{ fontSize: `${1.2 * fontScale}vw` }}
+                        >
                           {formatTimestamp(announcement.timestamp)}
                         </span>
                       </div>
-                      <p className="mt-[0.5vh] text-[1.5vw] leading-snug">
+                      <p
+                        className="mt-[0.5vh] leading-snug"
+                        style={{ fontSize: `${1.5 * fontScale}vw` }}
+                      >
                         {announcement.content}
                       </p>
                     </div>

@@ -6,8 +6,8 @@ import { ExamInfoCard } from "@/components/ExamInfoCard";
 import { AnnouncementCard } from "@/components/AnnouncementCard";
 import type { ExamInfo, Announcement } from "@/types/exam";
 import { subscribeToExam, subscribeToAnnouncements, subscribeToAppSettings, type AppSettings } from "@/lib/firestore";
-import { loadLocalClockSize, saveLocalClockSize, clearLocalClockSize } from "@/lib/storage";
-import { Loader2, Settings, RotateCcw } from "lucide-react";
+import { loadLocalClockSize, saveLocalClockSize, clearLocalClockSize, loadLocalFontScale, saveLocalFontScale, clearLocalFontScale } from "@/lib/storage";
+import { Loader2, Settings, RotateCcw, Type } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -17,17 +17,25 @@ export default function Home() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [defaultClockSize, setDefaultClockSize] = useState(16); // From Firestore
   const [localClockSize, setLocalClockSize] = useState<number | null>(null); // From localStorage
+  const [defaultFontScale, setDefaultFontScale] = useState(1.0); // From Firestore
+  const [localFontScale, setLocalFontScale] = useState<number | null>(null); // From localStorage
   const [isLoading, setIsLoading] = useState(true);
   const [showSizeControl, setShowSizeControl] = useState(false);
 
-  // Actual clock size: local override or default
+  // Actual sizes: local override or default
   const clockSize = localClockSize ?? defaultClockSize;
+  const fontScale = localFontScale ?? defaultFontScale;
 
   useEffect(() => {
-    // Load local clock size
-    const savedLocal = loadLocalClockSize();
-    if (savedLocal !== null) {
-      setLocalClockSize(savedLocal);
+    // Load local settings
+    const savedClockSize = loadLocalClockSize();
+    if (savedClockSize !== null) {
+      setLocalClockSize(savedClockSize);
+    }
+
+    const savedFontScale = loadLocalFontScale();
+    if (savedFontScale !== null) {
+      setLocalFontScale(savedFontScale);
     }
 
     // Subscribe to real-time updates
@@ -42,6 +50,7 @@ export default function Home() {
 
     const unsubSettings = subscribeToAppSettings((settingsData) => {
       setDefaultClockSize(settingsData.clockSize);
+      setDefaultFontScale(settingsData.fontScale);
     });
 
     // Cleanup subscriptions on unmount
@@ -60,6 +69,16 @@ export default function Home() {
   const handleResetClockSize = () => {
     setLocalClockSize(null);
     clearLocalClockSize();
+  };
+
+  const handleFontScaleChange = (scale: number) => {
+    setLocalFontScale(scale);
+    saveLocalFontScale(scale);
+  };
+
+  const handleResetFontScale = () => {
+    setLocalFontScale(null);
+    clearLocalFontScale();
   };
 
   if (isLoading) {
@@ -86,13 +105,13 @@ export default function Home() {
           관리자 페이지에서 설정하기
         </a>
 
-        {/* Clock size control */}
+        {/* Size control */}
         <div className="fixed bottom-4 right-4">
           {showSizeControl ? (
             <Card className="w-80">
-              <CardContent className="pt-6 space-y-4">
+              <CardContent className="pt-6 space-y-6">
                 <div className="flex items-center justify-between">
-                  <Label>시계 크기: {clockSize}vw</Label>
+                  <Label className="font-bold">화면 설정</Label>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -101,29 +120,63 @@ export default function Home() {
                     닫기
                   </Button>
                 </div>
-                <input
-                  type="range"
-                  min="8"
-                  max="24"
-                  step="1"
-                  value={clockSize}
-                  onChange={(e) => handleClockSizeChange(parseInt(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                />
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">
-                    {localClockSize !== null ? `로컬: ${localClockSize}vw` : `기본값: ${defaultClockSize}vw`}
-                  </span>
-                  {localClockSize !== null && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleResetClockSize}
-                    >
-                      <RotateCcw className="w-3 h-3 mr-1" />
-                      기본값으로
-                    </Button>
-                  )}
+
+                {/* Clock Size */}
+                <div className="space-y-2">
+                  <Label className="text-sm">시계 크기: {clockSize}vw</Label>
+                  <input
+                    type="range"
+                    min="8"
+                    max="24"
+                    step="1"
+                    value={clockSize}
+                    onChange={(e) => handleClockSizeChange(parseInt(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                  />
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">
+                      {localClockSize !== null ? `로컬: ${localClockSize}vw` : `기본값: ${defaultClockSize}vw`}
+                    </span>
+                    {localClockSize !== null && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleResetClockSize}
+                      >
+                        <RotateCcw className="w-3 h-3 mr-1" />
+                        초기화
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Font Scale */}
+                <div className="space-y-2">
+                  <Label className="text-sm">글자 크기: {fontScale.toFixed(1)}x</Label>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="2.0"
+                    step="0.1"
+                    value={fontScale}
+                    onChange={(e) => handleFontScaleChange(parseFloat(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                  />
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">
+                      {localFontScale !== null ? `로컬: ${localFontScale.toFixed(1)}x` : `기본값: ${defaultFontScale.toFixed(1)}x`}
+                    </span>
+                    {localFontScale !== null && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleResetFontScale}
+                      >
+                        <RotateCcw className="w-3 h-3 mr-1" />
+                        초기화
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -147,9 +200,9 @@ export default function Home() {
       {/* 헤더 - 시험명 (간결하게) */}
       <header className="flex-shrink-0 border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm px-[2vw] py-[0.8vh]">
         <div className="flex items-center justify-center gap-[1vw]">
-          <h1 className="text-[2vw] font-bold">{exam.name}</h1>
-          <span className="text-[1.5vw] text-muted-foreground">|</span>
-          <span className="text-[1.8vw] text-muted-foreground">
+          <h1 className="font-bold" style={{ fontSize: `${2 * fontScale}vw` }}>{exam.name}</h1>
+          <span className="text-muted-foreground" style={{ fontSize: `${1.5 * fontScale}vw` }}>|</span>
+          <span className="text-muted-foreground" style={{ fontSize: `${1.8 * fontScale}vw` }}>
             {exam.subject}
           </span>
         </div>
@@ -164,18 +217,18 @@ export default function Home() {
 
         {/* 하단 정보 영역 */}
         <section className="flex-1 grid grid-cols-2 gap-[2vw] min-h-0 pb-[2vh]">
-          <ExamInfoCard exam={exam} />
-          <AnnouncementCard announcements={announcements} />
+          <ExamInfoCard exam={exam} fontScale={fontScale} />
+          <AnnouncementCard announcements={announcements} fontScale={fontScale} />
         </section>
       </main>
 
-      {/* Clock size control */}
+      {/* Size control */}
       <div className="fixed bottom-4 right-4 z-50">
         {showSizeControl ? (
           <Card className="w-80">
-            <CardContent className="pt-6 space-y-4">
+            <CardContent className="pt-6 space-y-6">
               <div className="flex items-center justify-between">
-                <Label>시계 크기: {clockSize}vw</Label>
+                <Label className="font-bold">화면 설정</Label>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -184,29 +237,63 @@ export default function Home() {
                   닫기
                 </Button>
               </div>
-              <input
-                type="range"
-                min="8"
-                max="24"
-                step="1"
-                value={clockSize}
-                onChange={(e) => handleClockSizeChange(parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-              />
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-muted-foreground">
-                  {localClockSize !== null ? `로컬: ${localClockSize}vw` : `기본값: ${defaultClockSize}vw`}
-                </span>
-                {localClockSize !== null && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleResetClockSize}
-                  >
-                    <RotateCcw className="w-3 h-3 mr-1" />
-                    기본값으로
-                  </Button>
-                )}
+
+              {/* Clock Size */}
+              <div className="space-y-2">
+                <Label className="text-sm">시계 크기: {clockSize}vw</Label>
+                <input
+                  type="range"
+                  min="8"
+                  max="24"
+                  step="1"
+                  value={clockSize}
+                  onChange={(e) => handleClockSizeChange(parseInt(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                />
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">
+                    {localClockSize !== null ? `로컬: ${localClockSize}vw` : `기본값: ${defaultClockSize}vw`}
+                  </span>
+                  {localClockSize !== null && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResetClockSize}
+                    >
+                      <RotateCcw className="w-3 h-3 mr-1" />
+                      초기화
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Font Scale */}
+              <div className="space-y-2">
+                <Label className="text-sm">글자 크기: {fontScale.toFixed(1)}x</Label>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="2.0"
+                  step="0.1"
+                  value={fontScale}
+                  onChange={(e) => handleFontScaleChange(parseFloat(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                />
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">
+                    {localFontScale !== null ? `로컬: ${localFontScale.toFixed(1)}x` : `기본값: ${defaultFontScale.toFixed(1)}x`}
+                  </span>
+                  {localFontScale !== null && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResetFontScale}
+                    >
+                      <RotateCcw className="w-3 h-3 mr-1" />
+                      초기화
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

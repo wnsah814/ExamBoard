@@ -4,6 +4,7 @@ const EXAM_KEY = "examboard-exam";
 const ANNOUNCEMENTS_KEY = "examboard-announcements";
 const PRESETS_KEY = "examboard-presets";
 const CLOCK_SIZE_KEY = "examboard-clock-size";
+const FONT_SCALE_KEY = "examboard-font-scale";
 
 export interface ExamData {
   name: string;
@@ -125,5 +126,26 @@ export function loadLocalClockSize(): number | null {
 export function clearLocalClockSize(): void {
   if (typeof window !== "undefined") {
     localStorage.removeItem(CLOCK_SIZE_KEY);
+  }
+}
+
+// Font scale (local per display)
+export function saveLocalFontScale(scale: number): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(FONT_SCALE_KEY, scale.toString());
+  }
+}
+
+export function loadLocalFontScale(): number | null {
+  if (typeof window === "undefined") return null;
+  const data = localStorage.getItem(FONT_SCALE_KEY);
+  if (!data) return null;
+  const scale = parseFloat(data);
+  return isNaN(scale) ? null : scale;
+}
+
+export function clearLocalFontScale(): void {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(FONT_SCALE_KEY);
   }
 }
