@@ -20,6 +20,7 @@ import {
   saveExamToFirestore,
   loadExamFromFirestore,
   addAnnouncementToFirestore,
+  updateAnnouncementInFirestore,
   deleteAnnouncementFromFirestore,
   loadAnnouncementsFromFirestore,
   savePresetToFirestore,
@@ -32,7 +33,7 @@ import { AdminAuth } from "@/components/AdminAuth";
 import { AdminSettings } from "@/components/AdminSettings";
 import type { Announcement } from "@/types/exam";
 import type { User } from "firebase/auth";
-import { Trash2, Plus, Eye, Clock, Bell, Save, FolderOpen, Loader2, Settings, LogOut } from "lucide-react";
+import { Trash2, Plus, Eye, Clock, Bell, Save, FolderOpen, Loader2, Settings, LogOut, Pencil, Check, X } from "lucide-react";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -67,6 +68,16 @@ export default function AdminPage() {
     title: "",
     content: "",
     questionNumber: "",
+  });
+
+  // Editing announcement
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingAnnouncement, setEditingAnnouncement] = useState({
+    type: "info" as "info" | "warning" | "correction",
+    title: "",
+    content: "",
+    questionNumber: "",
+    time: "",
   });
 
   function formatDateTimeLocal(date: Date): string {
@@ -366,6 +377,48 @@ export default function AdminPage() {
       console.error("Error deleting announcement:", error);
       alert("공지사항 삭제 중 오류가 발생했습니다.");
     }
+  }
+
+  function startEditing(a: Announcement) {
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    setEditingId(a.id);
+    setEditingAnnouncement({
+      type: a.type,
+      title: a.title,
+      content: a.content,
+      questionNumber: a.questionNumber?.toString() || "",
+      time: `${pad(a.timestamp.getHours())}:${pad(a.timestamp.getMinutes())}`,
+    });
+  }
+
+  async function handleSaveEdit(id: string) {
+    const announcement = announcements.find((a) => a.id === id);
+    if (!announcement) return;
+
+    const [hours, minutes] = editingAnnouncement.time.split(":").map(Number);
+    const newTimestamp = new Date(announcement.timestamp);
+    newTimestamp.setHours(hours, minutes, 0, 0);
+
+    const updated = {
+      type: editingAnnouncement.type,
+      title: editingAnnouncement.title,
+      content: editingAnnouncement.content,
+      questionNumber: editingAnnouncement.questionNumber
+        ? parseInt(editingAnnouncement.questionNumber)
+        : undefined,
+      timestamp: newTimestamp,
+    };
+
+    try {
+      await updateAnnouncementInFirestore(id, updated);
+      setAnnouncements((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, ...updated } : a))
+      );
+    } catch (error) {
+      console.error("Error updating announcement:", error);
+      alert("공지사항 수정 중 오류가 발생했습니다.");
+    }
+    setEditingId(null);
   }
 
   function getTypeLabel(type: string) {
@@ -680,6 +733,112 @@ export default function AdminPage() {
               ) : (
                 announcements.map((a) => {
                   const typeInfo = getTypeLabel(a.type);
+
+                  if (editingId === a.id) {
+                    return (
+                      <div
+                        key={a.id}
+                        className="p-4 border-2 border-primary/50 rounded-lg bg-muted/30 space-y-3"
+                      >
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs">유형</Label>
+                            <Select
+                              value={editingAnnouncement.type}
+                              onValueChange={(v) =>
+                                setEditingAnnouncement((prev) => ({
+                                  ...prev,
+                                  type: v as "info" | "warning" | "correction",
+                                }))
+                              }
+                            >
+                              <SelectTrigger className="h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="info">안내</SelectItem>
+                                <SelectItem value="warning">주의</SelectItem>
+                                <SelectItem value="correction">문제 정정</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">제목</Label>
+                            <Input
+                              className="h-8"
+                              value={editingAnnouncement.title}
+                              onChange={(e) =>
+                                setEditingAnnouncement((prev) => ({
+                                  ...prev,
+                                  title: e.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">시간</Label>
+                            <Input
+                              type="time"
+                              className="h-8"
+                              value={editingAnnouncement.time}
+                              onChange={(e) =>
+                                setEditingAnnouncement((prev) => ({
+                                  ...prev,
+                                  time: e.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                        </div>
+                        {editingAnnouncement.type === "correction" && (
+                          <div className="space-y-1">
+                            <Label className="text-xs">문제 번호</Label>
+                            <Input
+                              type="number"
+                              className="h-8 w-32"
+                              value={editingAnnouncement.questionNumber}
+                              onChange={(e) =>
+                                setEditingAnnouncement((prev) => ({
+                                  ...prev,
+                                  questionNumber: e.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                        )}
+                        <div className="space-y-1">
+                          <Label className="text-xs">내용</Label>
+                          <Textarea
+                            value={editingAnnouncement.content}
+                            onChange={(e) =>
+                              setEditingAnnouncement((prev) => ({
+                                ...prev,
+                                content: e.target.value,
+                              }))
+                            }
+                          />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditingId(null)}
+                          >
+                            <X className="w-3 h-3 mr-1" />
+                            취소
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleSaveEdit(a.id)}
+                          >
+                            <Check className="w-3 h-3 mr-1" />
+                            저장
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  }
+
                   return (
                     <div
                       key={a.id}
@@ -705,13 +864,22 @@ export default function AdminPage() {
                           {a.content}
                         </p>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteAnnouncement(a.id)}
-                      >
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => startEditing(a)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteAnnouncement(a.id)}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
                     </div>
                   );
                 })

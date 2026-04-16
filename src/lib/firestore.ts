@@ -8,6 +8,7 @@ import {
   onSnapshot,
   addDoc,
   deleteDoc,
+  deleteField,
   getDocs,
   Timestamp,
 } from "firebase/firestore";
@@ -138,6 +139,31 @@ export async function addAnnouncementToFirestore(announcement: {
 
   const docRef = await addDoc(colRef, data);
   return docRef.id;
+}
+
+export async function updateAnnouncementInFirestore(
+  id: string,
+  announcement: {
+    type: "info" | "warning" | "correction";
+    title: string;
+    content: string;
+    questionNumber?: number;
+    timestamp: Date;
+  }
+): Promise<void> {
+  const docRef = doc(db, ANNOUNCEMENTS_COLLECTION, id);
+  const data: Record<string, unknown> = {
+    type: announcement.type,
+    title: announcement.title,
+    content: announcement.content,
+    timestamp: Timestamp.fromDate(announcement.timestamp),
+  };
+  if (announcement.questionNumber !== undefined) {
+    data.questionNumber = announcement.questionNumber;
+  } else {
+    data.questionNumber = deleteField();
+  }
+  await setDoc(docRef, data, { merge: true });
 }
 
 export async function deleteAnnouncementFromFirestore(id: string): Promise<void> {
