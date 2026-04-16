@@ -5,6 +5,7 @@ const ANNOUNCEMENTS_KEY = "examboard-announcements";
 const PRESETS_KEY = "examboard-presets";
 const CLOCK_SIZE_KEY = "examboard-clock-size";
 const FONT_SCALE_KEY = "examboard-font-scale";
+const LAYOUT_KEY = "examboard-layout";
 
 export interface ExamData {
   name: string;
@@ -149,4 +150,19 @@ export function clearLocalFontScale(): void {
   if (typeof window !== "undefined") {
     localStorage.removeItem(FONT_SCALE_KEY);
   }
+}
+
+// Layout mode
+export type LayoutMode = "default" | "split";
+
+export function saveLayoutMode(mode: LayoutMode): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(LAYOUT_KEY, mode);
+  }
+}
+
+export function loadLayoutMode(): LayoutMode {
+  if (typeof window === "undefined") return "default";
+  const data = localStorage.getItem(LAYOUT_KEY);
+  return data === "split" ? "split" : "default";
 }

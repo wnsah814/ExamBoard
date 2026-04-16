@@ -6,7 +6,7 @@ import { ExamInfoCard } from "@/components/ExamInfoCard";
 import { AnnouncementCard } from "@/components/AnnouncementCard";
 import type { ExamInfo, Announcement } from "@/types/exam";
 import { subscribeToExam, subscribeToAnnouncements, subscribeToAppSettings, type AppSettings } from "@/lib/firestore";
-import { loadLocalClockSize, saveLocalClockSize, clearLocalClockSize, loadLocalFontScale, saveLocalFontScale, clearLocalFontScale } from "@/lib/storage";
+import { loadLocalClockSize, saveLocalClockSize, clearLocalClockSize, loadLocalFontScale, saveLocalFontScale, clearLocalFontScale, loadLayoutMode, saveLayoutMode, type LayoutMode } from "@/lib/storage";
 import { Loader2, Settings, RotateCcw, Type } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,6 +21,7 @@ export default function Home() {
   const [localFontScale, setLocalFontScale] = useState<number | null>(null); // From localStorage
   const [isLoading, setIsLoading] = useState(true);
   const [showSizeControl, setShowSizeControl] = useState(false);
+  const [layout, setLayout] = useState<LayoutMode>("default");
 
   // Actual sizes: local override or default
   const clockSize = localClockSize ?? defaultClockSize;
@@ -37,6 +38,8 @@ export default function Home() {
     if (savedFontScale !== null) {
       setLocalFontScale(savedFontScale);
     }
+
+    setLayout(loadLayoutMode());
 
     // Subscribe to real-time updates
     const unsubExam = subscribeToExam((examData) => {
@@ -79,6 +82,11 @@ export default function Home() {
   const handleResetFontScale = () => {
     setLocalFontScale(null);
     clearLocalFontScale();
+  };
+
+  const handleLayoutChange = (mode: LayoutMode) => {
+    setLayout(mode);
+    saveLayoutMode(mode);
   };
 
   if (isLoading) {
@@ -210,21 +218,41 @@ export default function Home() {
       </header>
 
       {/* 메인 콘텐츠 */}
-      <main
-        className="flex-1 flex flex-col min-h-0"
-        style={{ padding: `${1.5 * fontScale}vh ${2 * fontScale}vw`, gap: `${1.5 * fontScale}vh` }}
-      >
-        {/* 시계 영역 */}
-        <section className="flex items-center justify-center" style={{ padding: `${2 * fontScale}vh 0` }}>
-          <Clock size={clockSize} />
-        </section>
+      {layout === "default" ? (
+        <main
+          className="flex-1 flex flex-col min-h-0"
+          style={{ padding: `${1.5 * fontScale}vh ${2 * fontScale}vw`, gap: `${1.5 * fontScale}vh` }}
+        >
+          {/* 시계 영역 */}
+          <section className="flex items-center justify-center" style={{ padding: `${2 * fontScale}vh 0` }}>
+            <Clock size={clockSize} />
+          </section>
 
-        {/* 하단 정보 영역 */}
-        <section className="flex-1 grid min-h-0" style={{ gridTemplateColumns: "1fr 2fr", gap: `${1.5 * fontScale}vw`, paddingBottom: `${1 * fontScale}vh` }}>
-          <ExamInfoCard exam={exam} fontScale={fontScale} />
-          <AnnouncementCard announcements={announcements} fontScale={fontScale} />
-        </section>
-      </main>
+          {/* 하단 정보 영역 */}
+          <section className="flex-1 grid min-h-0" style={{ gridTemplateColumns: "1fr 2fr", gap: `${1.5 * fontScale}vw`, paddingBottom: `${1 * fontScale}vh` }}>
+            <ExamInfoCard exam={exam} fontScale={fontScale} />
+            <AnnouncementCard announcements={announcements} fontScale={fontScale} />
+          </section>
+        </main>
+      ) : (
+        <main
+          className="flex-1 grid min-h-0"
+          style={{ gridTemplateColumns: "1fr 1fr", padding: `${1.5 * fontScale}vh ${2 * fontScale}vw`, gap: `${1.5 * fontScale}vw` }}
+        >
+          {/* 왼쪽: 시계 + 시험 정보 */}
+          <section className="flex flex-col items-center justify-center min-h-0" style={{ gap: `${2 * fontScale}vh`, padding: `0 ${1.5 * fontScale}vw` }}>
+            <Clock size={clockSize} />
+            <div className="w-full">
+              <ExamInfoCard exam={exam} fontScale={fontScale} compact />
+            </div>
+          </section>
+
+          {/* 오른쪽: 공지사항 */}
+          <section className="min-h-0">
+            <AnnouncementCard announcements={announcements} fontScale={fontScale} />
+          </section>
+        </main>
+      )}
 
       {/* Size control */}
       <div className="fixed bottom-4 right-4 z-50">
@@ -297,6 +325,29 @@ export default function Home() {
                       초기화
                     </Button>
                   )}
+                </div>
+              </div>
+
+              {/* Layout */}
+              <div className="space-y-2">
+                <Label className="text-sm">레이아웃</Label>
+                <div className="flex gap-2">
+                  <Button
+                    variant={layout === "default" ? "default" : "outline"}
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleLayoutChange("default")}
+                  >
+                    기본
+                  </Button>
+                  <Button
+                    variant={layout === "split" ? "default" : "outline"}
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleLayoutChange("split")}
+                  >
+                    좌우 분할
+                  </Button>
                 </div>
               </div>
             </CardContent>
