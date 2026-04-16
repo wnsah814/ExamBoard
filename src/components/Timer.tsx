@@ -81,14 +81,14 @@ export function Timer({ endTime, earlyExitTime }: TimerProps) {
               variant="default"
               className="text-[1.5vw] px-[2vw] py-[0.5vw] bg-green-600 hover:bg-green-600"
             >
-              중도퇴실 가능
+              중도 퇴실
             </Badge>
           ) : earlyExitRemainingMs && earlyExitRemainingMs > 0 ? (
             <Badge
               variant="secondary"
               className="text-[1.5vw] px-[2vw] py-[0.5vw]"
             >
-              중도퇴실까지 {formatTimeRemaining(earlyExitRemainingMs)}
+              중도 퇴실까지 {formatTimeRemaining(earlyExitRemainingMs)}
             </Badge>
           ) : null}
         </div>

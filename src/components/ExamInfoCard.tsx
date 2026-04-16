@@ -43,7 +43,7 @@ export function ExamInfoCard({ exam, fontScale = 1.0 }: ExamInfoCardProps) {
               className="text-muted-foreground mb-[1vh]"
               style={{ fontSize: `${2 * fontScale}vw` }}
             >
-              중도퇴실 가능
+              중도 퇴실
             </div>
             <div
               className="font-semibold tabular-nums text-muted-foreground"

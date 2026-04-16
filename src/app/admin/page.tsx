@@ -568,7 +568,7 @@ export default function AdminPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="earlyExitTime">중도퇴실 가능 시간</Label>
+                <Label htmlFor="earlyExitTime">중도 퇴실 시간</Label>
                 <Input
                   id="earlyExitTime"
                   type="datetime-local"
