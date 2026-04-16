@@ -117,7 +117,7 @@ export default function Home() {
         <div className="fixed bottom-4 right-4">
           {showSizeControl ? (
             <Card className="w-80">
-              <CardContent className="pt-6 space-y-6">
+              <CardContent className="pt-3 space-y-4">
                 <div className="flex items-center justify-between">
                   <Label className="font-bold">화면 설정</Label>
                   <Button
@@ -258,7 +258,7 @@ export default function Home() {
       <div className="fixed bottom-4 right-4 z-50">
         {showSizeControl ? (
           <Card className="w-80">
-            <CardContent className="pt-6 space-y-6">
+            <CardContent className="pt-3 space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="font-bold">화면 설정</Label>
                 <Button
