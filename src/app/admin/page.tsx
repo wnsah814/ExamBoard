@@ -293,11 +293,12 @@ export default function AdminPage() {
       if (loadAnnouncements) {
         for (const a of preset.announcements) {
           try {
+            const qn = a.questionNumber != null ? String(a.questionNumber) : undefined;
             const { id, order } = await addAnnouncementToFirestore({
               type: a.type,
               title: a.title,
               content: a.content,
-              questionNumber: a.questionNumber,
+              questionNumber: qn,
             });
             setAnnouncements((prev) => [
               ...prev,
@@ -306,7 +307,7 @@ export default function AdminPage() {
                 type: a.type,
                 title: a.title,
                 content: a.content,
-                questionNumber: a.questionNumber,
+                questionNumber: qn,
                 timestamp: new Date(),
                 order,
               },
@@ -340,9 +341,7 @@ export default function AdminPage() {
         type: newAnnouncement.type,
         title: newAnnouncement.title,
         content: newAnnouncement.content,
-        questionNumber: newAnnouncement.questionNumber
-          ? parseInt(newAnnouncement.questionNumber)
-          : undefined,
+        questionNumber: newAnnouncement.questionNumber || undefined,
       });
 
       setAnnouncements((prev) => [
@@ -352,9 +351,7 @@ export default function AdminPage() {
           type: newAnnouncement.type,
           title: newAnnouncement.title,
           content: newAnnouncement.content,
-          questionNumber: newAnnouncement.questionNumber
-            ? parseInt(newAnnouncement.questionNumber)
-            : undefined,
+          questionNumber: newAnnouncement.questionNumber || undefined,
           timestamp: new Date(),
           order,
         },
@@ -406,9 +403,7 @@ export default function AdminPage() {
       type: editingAnnouncement.type,
       title: editingAnnouncement.title,
       content: editingAnnouncement.content,
-      questionNumber: editingAnnouncement.questionNumber
-        ? parseInt(editingAnnouncement.questionNumber)
-        : undefined,
+      questionNumber: editingAnnouncement.questionNumber || undefined,
       timestamp: newTimestamp,
     };
 
@@ -713,8 +708,8 @@ export default function AdminPage() {
                   <div className="space-y-2">
                     <Label>문제 번호</Label>
                     <Input
-                      type="number"
-                      placeholder="5"
+                      type="text"
+                      placeholder="5번"
                       value={newAnnouncement.questionNumber}
                       onChange={(e) =>
                         setNewAnnouncement((prev) => ({
@@ -818,7 +813,7 @@ export default function AdminPage() {
                           <div className="space-y-1">
                             <Label className="text-xs">문제 번호</Label>
                             <Input
-                              type="number"
+                              type="text"
                               className="h-8 w-32"
                               value={editingAnnouncement.questionNumber}
                               onChange={(e) =>
@@ -875,7 +870,7 @@ export default function AdminPage() {
                           </Badge>
                           <span className="font-medium">{a.title}</span>
                           {a.questionNumber && (
-                            <Badge variant="outline">{a.questionNumber}번</Badge>
+                            <Badge variant="outline">{a.questionNumber}</Badge>
                           )}
                           <span className="text-xs text-muted-foreground">
                             {a.timestamp.toLocaleTimeString("ko-KR", {

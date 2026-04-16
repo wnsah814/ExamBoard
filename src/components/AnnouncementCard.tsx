@@ -99,7 +99,7 @@ export function AnnouncementCard({ announcements, fontScale = 1.0 }: Announcemen
                               className="px-[0.6vw] bg-background"
                               style={{ fontSize: `${1.2 * fontScale}vw` }}
                             >
-                              {announcement.questionNumber}번
+                              {announcement.questionNumber}
                             </Badge>
                           )}
                         </span>

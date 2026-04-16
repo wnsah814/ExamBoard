@@ -36,7 +36,7 @@ export interface AnnouncementDoc {
   type: "info" | "warning" | "correction";
   title: string;
   content: string;
-  questionNumber?: number;
+  questionNumber?: string;
   timestamp: Timestamp;
   order?: number;
 }
@@ -45,7 +45,7 @@ export interface PresetAnnouncement {
   type: "info" | "warning" | "correction";
   title: string;
   content: string;
-  questionNumber?: number;
+  questionNumber?: string;
 }
 
 export interface PresetDoc {
@@ -123,7 +123,7 @@ export async function addAnnouncementToFirestore(announcement: {
   type: "info" | "warning" | "correction";
   title: string;
   content: string;
-  questionNumber?: number;
+  questionNumber?: string;
 }): Promise<{ id: string; order: number }> {
   const colRef = collection(db, ANNOUNCEMENTS_COLLECTION);
 
@@ -159,7 +159,7 @@ export async function updateAnnouncementInFirestore(
     type: "info" | "warning" | "correction";
     title: string;
     content: string;
-    questionNumber?: number;
+    questionNumber?: string;
     timestamp: Date;
   }
 ): Promise<void> {
@@ -211,7 +211,7 @@ export async function loadAnnouncementsFromFirestore(): Promise<Announcement[]> 
       type: data.type,
       title: data.title,
       content: data.content,
-      questionNumber: data.questionNumber,
+      questionNumber: data.questionNumber != null ? String(data.questionNumber) : undefined,
       timestamp: data.timestamp.toDate(),
       order: data.order ?? 0,
     };
@@ -345,7 +345,10 @@ export async function loadPresetsFromFirestore(): Promise<Preset[]> {
       subject: data.subject,
       durationMinutes: data.durationMinutes,
       earlyExitMinutes: data.earlyExitMinutes,
-      announcements: data.announcements || [],
+      announcements: (data.announcements || []).map((a) => ({
+        ...a,
+        questionNumber: a.questionNumber != null ? String(a.questionNumber) : undefined,
+      })),
     };
   });
 }

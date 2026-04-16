@@ -12,7 +12,7 @@ export interface Announcement {
   type: "info" | "warning" | "correction";
   title: string;
   content: string;
-  questionNumber?: number;
+  questionNumber?: string;
   timestamp: Date;
   order: number;
 }
