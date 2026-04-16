@@ -229,7 +229,7 @@ export async function loadAnnouncementsFromFirestore(): Promise<Announcement[]> 
     await batch.commit();
   }
 
-  announcements.sort((a, b) => a.order - b.order);
+  announcements.sort((a, b) => b.order - a.order);
   return announcements;
 }
 
@@ -251,7 +251,7 @@ export function subscribeToAnnouncements(
         order: data.order ?? 0,
       };
     });
-    announcements.sort((a, b) => a.order - b.order);
+    announcements.sort((a, b) => b.order - a.order);
     callback(announcements);
   });
 }
