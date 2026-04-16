@@ -19,12 +19,15 @@ function formatTime(date: Date): string {
 export function ExamInfoCard({ exam, fontScale = 1.0 }: ExamInfoCardProps) {
   return (
     <Card className="h-full bg-card/50 backdrop-blur overflow-hidden">
-      <CardContent className="h-full flex flex-col justify-center p-[2vw] gap-[3vh]">
+      <CardContent
+        className="h-full flex flex-col justify-center"
+        style={{ padding: `${2 * fontScale}vw`, gap: `${3 * fontScale}vh` }}
+      >
         {/* 시험 시간 */}
         <div className="text-center">
           <div
-            className="text-muted-foreground mb-[1vh]"
-            style={{ fontSize: `${2 * fontScale}vw` }}
+            className="text-muted-foreground"
+            style={{ fontSize: `${2 * fontScale}vw`, marginBottom: `${1 * fontScale}vh` }}
           >
             시험 시간
           </div>
@@ -36,12 +39,12 @@ export function ExamInfoCard({ exam, fontScale = 1.0 }: ExamInfoCardProps) {
           </div>
         </div>
 
-        {/* 중도퇴실 */}
+        {/* 중도 퇴실 */}
         {exam.earlyExitTime && (
           <div className="text-center">
             <div
-              className="text-muted-foreground mb-[1vh]"
-              style={{ fontSize: `${2 * fontScale}vw` }}
+              className="text-muted-foreground"
+              style={{ fontSize: `${2 * fontScale}vw`, marginBottom: `${1 * fontScale}vh` }}
             >
               중도 퇴실
             </div>

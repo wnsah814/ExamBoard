@@ -49,24 +49,28 @@ export function AnnouncementCard({ announcements, fontScale = 1.0 }: Announcemen
 
   return (
     <Card className="h-full flex flex-col bg-card/50 backdrop-blur overflow-hidden">
-      <CardHeader className="pb-[1vh] pt-[1.5vh] px-[1.5vw]">
+      <CardHeader
+        style={{ paddingBottom: `${1 * fontScale}vh`, paddingTop: `${1.5 * fontScale}vh`, paddingLeft: `${1.5 * fontScale}vw`, paddingRight: `${1.5 * fontScale}vw` }}
+      >
         <CardTitle className="flex items-center justify-between">
-          <span className="flex items-center gap-[0.5vw]" style={{ fontSize: `${1.8 * fontScale}vw` }}>
+          <span className="flex items-center" style={{ gap: `${0.5 * fontScale}vw`, fontSize: `${1.8 * fontScale}vw` }}>
             <Bell style={{ width: iconSize, height: iconSize }} />
             공지사항
           </span>
           {announcements.length > 0 && (
             <Badge
               variant="destructive"
-              className="px-[1vw] py-[0.3vh]"
-              style={{ fontSize: `${1.3 * fontScale}vw` }}
+              style={{ fontSize: `${1.3 * fontScale}vw`, padding: `${0.3 * fontScale}vh ${1 * fontScale}vw` }}
             >
               {announcements.length}
             </Badge>
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 overflow-hidden px-[1.5vw] pb-[1.5vh]">
+      <CardContent
+        className="flex-1 overflow-hidden"
+        style={{ paddingLeft: `${1.5 * fontScale}vw`, paddingRight: `${1.5 * fontScale}vw`, paddingBottom: `${1.5 * fontScale}vh` }}
+      >
         {announcements.length === 0 ? (
           <div
             className="flex h-full items-center justify-center text-muted-foreground"
@@ -76,28 +80,27 @@ export function AnnouncementCard({ announcements, fontScale = 1.0 }: Announcemen
           </div>
         ) : (
           <ScrollArea className="h-full">
-            <div className="space-y-[1.2vh] pr-[1vw]">
+            <div style={{ display: "flex", flexDirection: "column", gap: `${1.2 * fontScale}vh`, paddingRight: `${1 * fontScale}vw` }}>
               {announcements.map((announcement) => (
                 <div
                   key={announcement.id}
-                  className={`rounded-lg border p-[1.2vw] ${getAnnouncementBg(
-                    announcement.type
-                  )}`}
+                  className={`rounded-lg border ${getAnnouncementBg(announcement.type)}`}
+                  style={{ padding: `${1.2 * fontScale}vw` }}
                 >
-                  <div className="flex items-start gap-[1vw]">
+                  <div className="flex items-start" style={{ gap: `${1 * fontScale}vw` }}>
                     {getAnnouncementIcon(announcement.type, fontScale)}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-[1vw]">
+                      <div className="flex items-center justify-between" style={{ gap: `${1 * fontScale}vw` }}>
                         <span
-                          className="font-semibold flex items-center gap-[0.5vw]"
-                          style={{ fontSize: `${1.6 * fontScale}vw` }}
+                          className="font-semibold flex items-center"
+                          style={{ fontSize: `${1.6 * fontScale}vw`, gap: `${0.5 * fontScale}vw` }}
                         >
                           {announcement.title}
                           {announcement.questionNumber && (
                             <Badge
                               variant="outline"
-                              className="px-[0.6vw] bg-background"
-                              style={{ fontSize: `${1.2 * fontScale}vw` }}
+                              className="bg-background"
+                              style={{ fontSize: `${1.2 * fontScale}vw`, padding: `0 ${0.6 * fontScale}vw` }}
                             >
                               {announcement.questionNumber}
                             </Badge>
@@ -111,8 +114,8 @@ export function AnnouncementCard({ announcements, fontScale = 1.0 }: Announcemen
                         </span>
                       </div>
                       <p
-                        className="mt-[0.5vh] leading-snug"
-                        style={{ fontSize: `${1.5 * fontScale}vw` }}
+                        className="leading-snug"
+                        style={{ fontSize: `${1.5 * fontScale}vw`, marginTop: `${0.5 * fontScale}vh` }}
                       >
                         {announcement.content}
                       </p>

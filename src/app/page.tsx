@@ -198,8 +198,11 @@ export default function Home() {
   return (
     <div className="h-screen w-screen overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex flex-col">
       {/* 헤더 - 시험명 (간결하게) */}
-      <header className="flex-shrink-0 border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm px-[2vw] py-[0.8vh]">
-        <div className="flex items-center justify-center gap-[1vw]">
+      <header
+        className="flex-shrink-0 border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm"
+        style={{ padding: `${0.8 * fontScale}vh ${2 * fontScale}vw` }}
+      >
+        <div className="flex items-center justify-center" style={{ gap: `${1 * fontScale}vw` }}>
           <h1 className="font-bold" style={{ fontSize: `${2 * fontScale}vw` }}>{exam.name}</h1>
           <span className="text-muted-foreground" style={{ fontSize: `${1.5 * fontScale}vw` }}>|</span>
           <span className="text-muted-foreground" style={{ fontSize: `${1.8 * fontScale}vw` }}>
@@ -209,14 +212,17 @@ export default function Home() {
       </header>
 
       {/* 메인 콘텐츠 */}
-      <main className="flex-1 flex flex-col px-[2vw] py-[2vh] gap-[2vh] min-h-0">
+      <main
+        className="flex-1 flex flex-col min-h-0"
+        style={{ padding: `${2 * fontScale}vh ${2 * fontScale}vw`, gap: `${2 * fontScale}vh` }}
+      >
         {/* 시계 영역 */}
-        <section className="flex items-center justify-center py-[4vh]">
+        <section className="flex items-center justify-center" style={{ padding: `${4 * fontScale}vh 0` }}>
           <Clock size={clockSize} />
         </section>
 
         {/* 하단 정보 영역 */}
-        <section className="flex-1 grid grid-cols-2 gap-[2vw] min-h-0 pb-[2vh]">
+        <section className="flex-1 grid grid-cols-2 min-h-0" style={{ gap: `${2 * fontScale}vw`, paddingBottom: `${2 * fontScale}vh` }}>
           <ExamInfoCard exam={exam} fontScale={fontScale} />
           <AnnouncementCard announcements={announcements} fontScale={fontScale} />
         </section>
