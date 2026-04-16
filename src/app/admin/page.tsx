@@ -22,6 +22,7 @@ import {
   addAnnouncementToFirestore,
   updateAnnouncementInFirestore,
   deleteAnnouncementFromFirestore,
+  swapAnnouncementOrder,
   loadAnnouncementsFromFirestore,
   savePresetToFirestore,
   deletePresetFromFirestore,
@@ -33,7 +34,7 @@ import { AdminAuth } from "@/components/AdminAuth";
 import { AdminSettings } from "@/components/AdminSettings";
 import type { Announcement } from "@/types/exam";
 import type { User } from "firebase/auth";
-import { Trash2, Plus, Eye, Clock, Bell, Save, FolderOpen, Loader2, Settings, LogOut, Pencil, Check, X } from "lucide-react";
+import { Trash2, Plus, Eye, Clock, Bell, Save, FolderOpen, Loader2, Settings, LogOut, Pencil, Check, X, ChevronUp, ChevronDown } from "lucide-react";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -292,13 +293,14 @@ export default function AdminPage() {
       if (loadAnnouncements) {
         for (const a of preset.announcements) {
           try {
-            const id = await addAnnouncementToFirestore({
+            const { id, order } = await addAnnouncementToFirestore({
               type: a.type,
               title: a.title,
               content: a.content,
               questionNumber: a.questionNumber,
             });
             setAnnouncements((prev) => [
+              ...prev,
               {
                 id,
                 type: a.type,
@@ -306,8 +308,8 @@ export default function AdminPage() {
                 content: a.content,
                 questionNumber: a.questionNumber,
                 timestamp: new Date(),
+                order,
               },
-              ...prev,
             ]);
           } catch (error) {
             console.error("Error adding announcement:", error);
@@ -334,7 +336,7 @@ export default function AdminPage() {
     }
 
     try {
-      const id = await addAnnouncementToFirestore({
+      const { id, order } = await addAnnouncementToFirestore({
         type: newAnnouncement.type,
         title: newAnnouncement.title,
         content: newAnnouncement.content,
@@ -344,6 +346,7 @@ export default function AdminPage() {
       });
 
       setAnnouncements((prev) => [
+        ...prev,
         {
           id,
           type: newAnnouncement.type,
@@ -353,8 +356,8 @@ export default function AdminPage() {
             ? parseInt(newAnnouncement.questionNumber)
             : undefined,
           timestamp: new Date(),
+          order,
         },
-        ...prev,
       ]);
 
       setNewAnnouncement({
@@ -419,6 +422,27 @@ export default function AdminPage() {
       alert("공지사항 수정 중 오류가 발생했습니다.");
     }
     setEditingId(null);
+  }
+
+  async function handleMoveAnnouncement(index: number, direction: "up" | "down") {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= announcements.length) return;
+
+    const a = announcements[index];
+    const b = announcements[targetIndex];
+
+    try {
+      await swapAnnouncementOrder(a.id, a.order, b.id, b.order);
+      setAnnouncements((prev) => {
+        const next = [...prev];
+        next[index] = { ...b, order: a.order };
+        next[targetIndex] = { ...a, order: b.order };
+        return next;
+      });
+    } catch (error) {
+      console.error("Error reordering:", error);
+      alert("순서 변경 중 오류가 발생했습니다.");
+    }
   }
 
   function getTypeLabel(type: string) {
@@ -731,7 +755,7 @@ export default function AdminPage() {
                   등록된 공지사항이 없습니다
                 </div>
               ) : (
-                announcements.map((a) => {
+                announcements.map((a, index) => {
                   const typeInfo = getTypeLabel(a.type);
 
                   if (editingId === a.id) {
@@ -865,6 +889,26 @@ export default function AdminPage() {
                         </p>
                       </div>
                       <div className="flex items-center gap-1">
+                        <div className="flex flex-col">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            disabled={index === 0}
+                            onClick={() => handleMoveAnnouncement(index, "up")}
+                          >
+                            <ChevronUp className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            disabled={index === announcements.length - 1}
+                            onClick={() => handleMoveAnnouncement(index, "down")}
+                          >
+                            <ChevronDown className="w-4 h-4" />
+                          </Button>
+                        </div>
                         <Button
                           variant="ghost"
                           size="icon"

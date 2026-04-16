@@ -70,9 +70,10 @@ export function toExamInfo(data: ExamData): ExamInfo {
 }
 
 export function toAnnouncements(data: AnnouncementData[]): Announcement[] {
-  return data.map((a) => ({
+  return data.map((a, index) => ({
     ...a,
     timestamp: new Date(a.timestamp),
+    order: index,
   }));
 }
 

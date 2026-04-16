@@ -11,6 +11,7 @@ import {
   deleteField,
   getDocs,
   Timestamp,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import type { ExamInfo, Announcement } from "@/types/exam";
@@ -37,6 +38,7 @@ export interface AnnouncementDoc {
   content: string;
   questionNumber?: number;
   timestamp: Timestamp;
+  order?: number;
 }
 
 export interface PresetAnnouncement {
@@ -122,8 +124,17 @@ export async function addAnnouncementToFirestore(announcement: {
   title: string;
   content: string;
   questionNumber?: number;
-}): Promise<string> {
+}): Promise<{ id: string; order: number }> {
   const colRef = collection(db, ANNOUNCEMENTS_COLLECTION);
+
+  // Get next order value
+  const snapshot = await getDocs(colRef);
+  let maxOrder = -1;
+  snapshot.docs.forEach((d) => {
+    const o = d.data().order;
+    if (typeof o === "number" && o > maxOrder) maxOrder = o;
+  });
+  const order = maxOrder + 1;
 
   // Firestore doesn't allow undefined values
   const data: Record<string, unknown> = {
@@ -131,6 +142,7 @@ export async function addAnnouncementToFirestore(announcement: {
     title: announcement.title,
     content: announcement.content,
     timestamp: Timestamp.now(),
+    order,
   };
 
   if (announcement.questionNumber !== undefined) {
@@ -138,7 +150,7 @@ export async function addAnnouncementToFirestore(announcement: {
   }
 
   const docRef = await addDoc(colRef, data);
-  return docRef.id;
+  return { id: docRef.id, order };
 }
 
 export async function updateAnnouncementInFirestore(
@@ -171,12 +183,23 @@ export async function deleteAnnouncementFromFirestore(id: string): Promise<void>
   await deleteDoc(docRef);
 }
 
+export async function swapAnnouncementOrder(
+  idA: string,
+  orderA: number,
+  idB: string,
+  orderB: number
+): Promise<void> {
+  const batch = writeBatch(db);
+  batch.update(doc(db, ANNOUNCEMENTS_COLLECTION, idA), { order: orderB });
+  batch.update(doc(db, ANNOUNCEMENTS_COLLECTION, idB), { order: orderA });
+  await batch.commit();
+}
+
 export async function loadAnnouncementsFromFirestore(): Promise<Announcement[]> {
   const colRef = collection(db, ANNOUNCEMENTS_COLLECTION);
-  const q = query(colRef, orderBy("timestamp", "desc"));
-  const snapshot = await getDocs(q);
+  const snapshot = await getDocs(colRef);
 
-  return snapshot.docs.map((doc) => {
+  const announcements = snapshot.docs.map((doc) => {
     const data = doc.data() as AnnouncementDoc;
     return {
       id: doc.id,
@@ -185,17 +208,19 @@ export async function loadAnnouncementsFromFirestore(): Promise<Announcement[]> 
       content: data.content,
       questionNumber: data.questionNumber,
       timestamp: data.timestamp.toDate(),
+      order: data.order ?? 0,
     };
   });
+  announcements.sort((a, b) => a.order - b.order);
+  return announcements;
 }
 
 export function subscribeToAnnouncements(
   callback: (announcements: Announcement[]) => void
 ): () => void {
   const colRef = collection(db, ANNOUNCEMENTS_COLLECTION);
-  const q = query(colRef, orderBy("timestamp", "desc"));
 
-  return onSnapshot(q, (snapshot) => {
+  return onSnapshot(colRef, (snapshot) => {
     const announcements = snapshot.docs.map((doc) => {
       const data = doc.data() as AnnouncementDoc;
       return {
@@ -205,8 +230,10 @@ export function subscribeToAnnouncements(
         content: data.content,
         questionNumber: data.questionNumber,
         timestamp: data.timestamp.toDate(),
+        order: data.order ?? 0,
       };
     });
+    announcements.sort((a, b) => a.order - b.order);
     callback(announcements);
   });
 }

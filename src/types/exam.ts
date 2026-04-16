@@ -14,4 +14,5 @@ export interface Announcement {
   content: string;
   questionNumber?: number;
   timestamp: Date;
+  order: number;
 }
