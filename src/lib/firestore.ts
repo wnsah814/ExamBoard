@@ -199,10 +199,15 @@ export async function loadAnnouncementsFromFirestore(): Promise<Announcement[]> 
   const colRef = collection(db, ANNOUNCEMENTS_COLLECTION);
   const snapshot = await getDocs(colRef);
 
-  const announcements = snapshot.docs.map((doc) => {
-    const data = doc.data() as AnnouncementDoc;
+  // Check if any docs are missing the order field
+  const needsOrder: string[] = [];
+  const announcements = snapshot.docs.map((d) => {
+    const data = d.data() as AnnouncementDoc;
+    if (data.order === undefined || data.order === null) {
+      needsOrder.push(d.id);
+    }
     return {
-      id: doc.id,
+      id: d.id,
       type: data.type,
       title: data.title,
       content: data.content,
@@ -211,6 +216,19 @@ export async function loadAnnouncementsFromFirestore(): Promise<Announcement[]> 
       order: data.order ?? 0,
     };
   });
+
+  // Assign unique order values to docs missing them
+  if (needsOrder.length > 0) {
+    // Sort by timestamp desc first (preserve original ordering)
+    announcements.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    const batch = writeBatch(db);
+    announcements.forEach((a, i) => {
+      a.order = i;
+      batch.update(doc(db, ANNOUNCEMENTS_COLLECTION, a.id), { order: i });
+    });
+    await batch.commit();
+  }
+
   announcements.sort((a, b) => a.order - b.order);
   return announcements;
 }
