@@ -102,7 +102,7 @@ export function AdminAuth({ onAuthenticated }: AdminAuthProps) {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="비밀번호 입력"
                   autoFocus
                 />
               </div>

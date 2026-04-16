@@ -48,7 +48,6 @@ export function AdminSettings({ currentUser, onClose }: AdminSettingsProps) {
       ]);
       setAdmins(adminList);
       setCurrentPassword(pwd);
-      if (pwd) setPassword(pwd);
       setClockSize(settings.clockSize);
       setFontScale(settings.fontScale);
     } catch (error) {
@@ -233,7 +232,7 @@ export function AdminSettings({ currentUser, onClose }: AdminSettingsProps) {
               <Label>비밀번호</Label>
               <Input
                 type="text"
-                placeholder="비밀번호를 설정하세요"
+                placeholder={currentPassword ? "새 비밀번호 입력" : "비밀번호를 설정하세요"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
